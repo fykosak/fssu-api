@@ -9,4 +9,10 @@ module.exports = function(app: express.Application) {
 
     app.route('/login/')
     .post(userController.loginUser);
+
+    app.route('/logout/')
+    .post(userController.authenticateToken, userController.logoutUser);
+
+    app.route('/refreshToken/')
+    .post(userController.refreshToken);
 }

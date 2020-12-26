@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS "login_group";
+DROP TABLE IF EXISTS "refresh_token";
 DROP TABLE IF EXISTS "login";
 DROP TABLE IF EXISTS "competition";
 DROP TABLE IF EXISTS "group";
@@ -9,6 +10,13 @@ CREATE TABLE "login" (
     "id" INT PRIMARY KEY AUTO_INCREMENT,
     "email" VARCHAR(255) NOT NULL UNIQUE,
     "password" VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE "refresh_token" (
+    "login_id" INT PRIMARY KEY,
+    "value" VARCHAR(255) NOT NULL,
+    "expires" DATETIME NOT NULL,
+    FOREIGN KEY ("login_id") REFERENCES "login" ("id")
 );
 
 CREATE TABLE "group" (

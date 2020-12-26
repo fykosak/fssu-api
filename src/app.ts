@@ -1,20 +1,20 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
+import { CLIENT_ORIGIN, COOKIE_SECRET } from './config';
+
 var cors = require('cors');
 
 const app = express();
 const port = 3200;
 
-app.use(cors());
+// Necessity for the cookies. Includes 'Access-Control-Allow-Origin' and 'Access-Control-Allow-Credentials' in the request headers.
+app.use(cors({
+    origin: CLIENT_ORIGIN,
+    credentials: true
+}));
 app.use(express.json());
 
-app.get('/', (request, result) => {
-    result.send('The sedulous hyena ate the antelope!');
-});
-
-app.get('/problems/', (request, result) => {
-    //result.setHeader('Access-Control-Allow-Origin', '*');
-    result.json({ problem: "Problem"});
-});
+app.use(cookieParser(COOKIE_SECRET));
 
 var userRouter = require('./routers/userRouter');
 userRouter(app);
