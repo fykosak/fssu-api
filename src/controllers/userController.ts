@@ -65,8 +65,9 @@ export default class UserController
             return response.sendStatus(400);
         if (!('password' in request.body))
             return response.sendStatus(400);
+        const plaintextPassword = request.body['password'];
 
-        var login = await userModel.getLoginByEmail(<string>request.body['email']);
+        const login = await userModel.getLoginByEmail(<string>request.body['email']);
         if (login == null) {
             return response.json({
                 ok: false,
@@ -74,18 +75,28 @@ export default class UserController
             });
         }
 
-        if (login.password !== request.body['password']) {
+        if (plaintextPassword.length > 64) {
+            return response.json({
+                ok: false,
+                error: 'Invalid password size.'
+            });
+        }
+
+        const bcrypt = require('bcrypt');
+        const passwordMatch = await bcrypt.compare(plaintextPassword, login.passwordHash);
+
+        if (!passwordMatch) {
             return response.json({
                 ok: false,
                 error: 'Invalid email or password.'
             });
         }
         
-        let expires = new Date();
+        const expires = new Date();
         expires.setDate(expires.getDate() + REFRESH_TOKEN_EXPIRES_DAYS)
-        let refreshToken = new RefreshToken(login.id, generateRefreshToken(), expires)
+        const refreshToken = new RefreshToken(login.id, generateRefreshToken(), expires)
 
-        let loginId = await userModel.setRefreshToken(refreshToken);
+        const loginId = await userModel.setRefreshToken(refreshToken);
         if (loginId == null)
             return response.json({
                 ok: false,

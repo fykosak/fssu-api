@@ -13,7 +13,7 @@ export default class UserModel
     {
         return this.database.query('SELECT * FROM login WHERE id = ?', id)
         .then(logins => {
-            return Login.createFromObject(logins[0]);
+            return Login.createFromDBObject(logins[0]);
         })
         .catch(error => {
             console.log(error);
@@ -25,7 +25,7 @@ export default class UserModel
     {
         return this.database.query('SELECT * FROM login WHERE email = ?', email)
         .then(logins => {
-            return Login.createFromObject(logins[0]);
+            return Login.createFromDBObject(logins[0]);
         })
         .catch(error => {
             console.log(error);
@@ -38,7 +38,7 @@ export default class UserModel
         return this.database.query('SELECT group.name, group.id FROM "group" INNER JOIN login_group ON group.id = group_id WHERE login_id = ?', login.id)
         .then(groups => {
             var output = new Array<Group>();
-            groups.forEach(group => output.push(Group.createFromObject(group)));
+            groups.forEach(group => output.push(Group.createFromDBObject(group)));
             return output;
         })
         .catch(error => {
@@ -72,7 +72,7 @@ export default class UserModel
             let token = tokens[0];
             token.loginId = token.login_id;
             token.expires = this.database.dateTimeToDate(token.expires);
-            return RefreshToken.createFromObject(token);
+            return RefreshToken.createFromDBObject(token);
         })
         .catch(error => {
             console.log(error);
@@ -130,7 +130,7 @@ export class RefreshToken
         this.expires = expires;
     }
 
-    static createFromObject(object: any)
+    static createFromDBObject(object: any)
     {
         return new RefreshToken(object.loginId, object.value, object.expires);
     }
@@ -140,20 +140,20 @@ export class Login
 {
     id: number;
     email: string;
-    password: string;
+    passwordHash: string;
     groups: Group[];
 
-    constructor(id: number, email: string, password: string, groups: Group[] | null = [])
+    constructor(id: number, email: string, passwordHash: string, groups: Group[] | null = [])
     {
         this.id = id;
         this.email = email;
-        this.password = password;
+        this.passwordHash = passwordHash;
         this.groups = groups != null ? groups : [];
     }
 
-    static createFromObject(object: any)
+    static createFromDBObject(object: any)
     {
-        return new Login(object.id, object.email, object.password, object.groups);
+        return new Login(object.id, object.email, object.password_hash, object.groups);
     }
 
     isInGroup(groupId: number): boolean
@@ -173,7 +173,7 @@ export class Group
         this.name = name;
     }
 
-    static createFromObject(object: any)
+    static createFromDBObject(object: any)
     {
         return new Group(object.id, object.name);
     }

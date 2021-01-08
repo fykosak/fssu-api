@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS "group";
 CREATE TABLE "login" (
     "id" INT PRIMARY KEY AUTO_INCREMENT,
     "email" VARCHAR(255) NOT NULL UNIQUE,
-    "password" VARCHAR(255) NOT NULL
+    "password_hash" VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE "refresh_token" (
@@ -34,22 +34,22 @@ CREATE TABLE "login_group" (
 
 -- action --
 
-CREATE TABLE "action" (
-    "id" INT PRIMARY KEY AUTO_INCREMENT,
-    "time" DATETIME NOT NULL,
-    "login_id" INT NOT NULL,
-    FOREIGN KEY ("login_id") REFERENCES "login" ("id")
-);
-
-CREATE TABLE "comment" (
-    "id" INT PRIMARY KEY AUTO_INCREMENT,
-    "text" TEXT NOT NULL,
-    "action_id" INT NOT NULL,
-    "parent_action_id" INT NOT NULL,
-    FOREIGN KEY ("action_id") REFERENCES "action" ("id")
-    FOREIGN KEY ("parent_action_id") REFERENCES "action" ("id")
-);
-
+-- CREATE TABLE "action" (
+--     "id" INT PRIMARY KEY AUTO_INCREMENT,
+--     "time" DATETIME NOT NULL,
+--     "login_id" INT NOT NULL,
+--     FOREIGN KEY ("login_id") REFERENCES "login" ("id")
+-- );
+-- 
+-- CREATE TABLE "comment" (
+--     "id" INT PRIMARY KEY AUTO_INCREMENT,
+--     "text" TEXT NOT NULL,
+--     "action_id" INT NOT NULL,
+--     "parent_action_id" INT NOT NULL,
+--     FOREIGN KEY ("action_id") REFERENCES "action" ("id")
+--     FOREIGN KEY ("parent_action_id") REFERENCES "action" ("id")
+-- );
+-- 
 -- competition --
 
 CREATE TABLE "competition" (
@@ -64,6 +64,6 @@ CREATE TABLE "competition" (
 );
 
 
---CREATE TABLE "role"
---CREATE TABLE "draft_for_competition"
---CREATE TABLE "evaluation"
+-- CREATE TABLE "role"
+-- CREATE TABLE "draft_for_competition"
+-- CREATE TABLE "evaluation"
