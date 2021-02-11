@@ -19,26 +19,28 @@ Schéma databáze se dělí na několik částí.
 ## Třídy ##
 ### Login ###
 - Základní jednotka, na kterou se váží práva, organizátoři a historie úprav.
-- *Email*, *Password* - přihlašovací údaje do systému.
+- *Email*, *Password* - přihlašovací údaje do systému (a na kopání).
 
 ### Group ###
 - Definuje jednu oddělenou skupinu - cokoli (úlohy, soutěže) patří do jedné skupiny, nemůže nijak ovlivňovat nic v jiných skupinách.
 - Každý **Login** může vidět jen věci z té skupiny, ke které má přístup.
 - Např. jedna skupina bude pro FYKOS, další pro VÝFUK.
+- *Name* - unikátní název
 
 ### Organizer ###
 - Organizátor, který vystupuje ve **Workflow** (někdo, kdo napsal vzorák, někdo, kdo vyrobil korekturu ...).
-- *Name*, *Email* - jméno, email (na kopání)
-- *TexAlias* - používá se v makrech \probauthors a \probsolauthors.
+- *Name* - jméno
+- Organizátor nebude mít email, protože nejde jen tak kopat někoho, kdo není v systému.
+- *Language* - výchozí jazyk - např. u slováků se vytvoří potřeba překladu zadání a tak
 
 ## Vztahy ##
 ### LoginInGroup ###
 - Login je ve skupině a má tedy práva na přístup k jejím úlohám a soutěžím.
 - Jeden login může být v libovolně mnoho skupinách, stejně jako v každé skupině může být libovolně mnoho loginů.
 
-### GroupOfProblem ###
-- Úloha patří do skupiny - kdokoli ze skupiny k ní má práva.
-- Každá úloha je v právě jedné skupině.
+### OrganizerInGroup ###
+- Jde o to, že organizátor musí mít unikátní *TexAlias* pouze v rámci jedné skupiny
+- *TexAlias* - používá se v makrech \probauthors a \probsolauthors.
 
 ### OrganizerLogin ###
 - Organizátor má přihlašovací údaje.
@@ -46,16 +48,26 @@ Schéma databáze se dělí na několik částí.
 
 # Soutěže
 ## Třídy ##
+### Directory ###
+Složka s úlohami - může to být jak soutěž, tak složka s návrhy / trash. Úloha je vždy v právě jedné **Directory**.
+- *Label* - název, který se zobrazí v klientu při popisu složky.
+- *Path* - cesta do složky se vším potřebným k texání.
+
 ### Competition ###
 - Jeden ročník soutěže typu seminář, FOL, FOF.
-- *Label* - název, který se zobrazí v seznamu soutěží.
+- *Name* - oficiální název (např. Fyziklání Online 2021), neplést s *Label* třídy **Directory**.
 - *Year* - ročník.
 - *TexCode* - makro \probsource.
 - *Type* - druh soutěže, např. seminář, FOL, FOF.
 - *Status* - něco jako ještě nic / výběr / probíhající soutěž / ukončeno.
 
-### DraftForCompetition ###
-- Značí, že úloha je navržena do nějaké soutěže.
+### Draftset ###
+Složka s návrhy na úlohy, nebo obecně jiná složka (např. trash).
+
+### DraftHistory ###
+- Značí, že úloha se nacházela v nějakém draftsetu.
+- Aktuálně se nachází v tom posledním.
+- *Cathegory*, *Batch*, *No* - kategorie, série a číslo, do kterých je úloha navržena. Nejsou povinné (záleží na soutěži).
 
 ### Evaluation ###
 - Hodnocení úlohy v rámci návrhu do soutěže - úloha může být hodnocena jinak v závislosti na tom, do jaké soutěže jí chceme vybrat.
@@ -77,15 +89,28 @@ Schéma databáze se dělí na několik částí.
 - Úloha je v soutěži. Zřejmě může být v maximálně jedné soutěži.
 - Občas by se sice mohlo recyklovat úlohy do soustředkových fyziklání, ale pravděpodobně na nich bude nutné něco upravit, takže bude lepší vytvořit kopii a tu upravovat.
 
-### DraftForCompetition ###
-- Úloha je navržena na výběr do soutěže. Tyto návrhy se nemažou, pouze se přidávají nové. Úloha tak může být postupně navržena do více soutěží.
+### ProblemDraftHistory ###
+- Tento konkrétní návrh se vztahuje k dané úloze. Tyto návrhy se nemažou, pouze se přidávají nové. Úloha tak může být postupně navržena do více soutěží.
+- V každou chvíli ale musí být v aspoň jednom
+
+### HistoryDraftset ###
+- **Draftset**, kam je úloha navržena.
 
 ### DraftEvaluation ###
 - Pro daný návrh úlohy do soutěže vzniklo ohodnocení. Úloha může být ohodnocena nejvýše jednou do dané soutěže, hodnocení probíhá při výběru úloh.
 - Úloha může být hodnocena jinak v závislosti na tom, do jaké soutěže jí chceme vybrat.
 
-### GroupOfCompetition ###
-- Podobné jako **GroupOfProblem** - soutěž je v dané (právě jedné) skupině. Může obsahovat jen úlohy z dané skupiny a mají k ní přístup jen loginy z dané skupiny.
+### DirectoryInGroup ###
+- Složka je v dané (právě jedné) skupině. Mají k ní přístup jen loginy z dané skupiny. Všechny úlohy v této složce jsou v dané skupině.
+
+### CompetitionDirectory ###
+- Soutěž má danou složku.
+
+### DraftDirectory ###
+- To samé, ale pro **Draftset**.
+
+### CompetitionDraftset ###
+Daný **Draftset** je souborem návrhů na úlohy do dané soutěže. Soutěž může mít jen jeden, ale nějaké draftsety nemusí být pro soutěž (např. trash)
 
 ### LoginRole ###
 - Login může mít v soutěži více různých rolí.
@@ -95,38 +120,23 @@ Schéma databáze se dělí na několik částí.
 
 # Obrázky a grafy
 ## Třídy ##
-### Figure ###
-- Obrázek k nějaké úloze.
-- *Type* - typ, například plot, metapost a tak (obrázky co nemají zdroják tu spíš nebudou).
-- *Identifier* - identifikátor v rámci úlohy (např. "graf" nebo "reseni") - bude to fungovat tak, že obrázek vytvoříme, přidáme k úloze a následně najdeme právě pod tímto identifikátorem.
+### AdditionalFile ###
+- Obrázek k nějaké úloze, data k obrázku nebo tak.
+- *Type* - typ, například plt, mp, csv a tak (obrázky co nemají zdroják tu spíš nebudou).
+- *ReferenceName* - identifikátor v rámci úlohy (např. "graf" nebo "reseni") - bude to fungovat tak, že obrázek vytvoříme, přidáme k úloze a následně najdeme právě pod tímto identifikátorem. Nicméně z toho důvodu bude nutné před texáním projít všechna makra + tyto soubory a nahradit odkazy na ně příslušným unikátním názvem (např. id úlohy + speciální znak + *ReferenceName*)
 
-### FigureHistory ###
-- Konkrétní verze obrázku - tabulka obsahuje historii všech verzí.
-- *SourceCode* - zdrojový kód obrázku.
-
-### Data ###
-- Data (především ke grafům).
-- *Type* - např. CSV soubor.
-
-### DataHistory ###
-- Konkrétní verze dat.
-- *RawData* - ano, toto jsou už skutečně *ta data*.
+### AdditionalFileHistory ###
+- Konkrétní verze souboru - tabulka obsahuje historii všech verzí.
+- *Content* - obsah.
 
 ## Vztahy ##
-### ProblemFigure ###
-- Obrázek patří do úlohy. Každý musí patřit do právě jedné (neznamená to, že musí být přímo v úloze - k tomu je stále potřeba přidat jej např. pomocí \fullfig).
+### ProblemAdditionalFile ###
+- Soubor patří k úloze. Každý musí patřit do právě jedné (neznamená to, že musí být přímo v úloze - k tomu je stále potřeba přidat jej např. pomocí \fullfig).
 - Sice by se občas mohlo hodit dát jeden obrázek do více úloh, ale to je jednak velmi nepravděpodobné, a za druhé bude stejně většinou potřeba obrázky alespoň trochu upravit. Přiřazení jednoho obrázku do více úloh by tak vedlo k tlaku na to nic neupravovat a dát do obou verzí zcela stejný.
 
-### FigureData ###
-- Data patří k danému obrázku.
-- Z datového souboru může být vytvořeno více obrázků (minimálně ale aspoň jeden, aby bylo jasné přiřazení datového souboru k úloze). Obrázek může potřebovat libovolně mnoho datových souborů.
-
-### FigureHistory ###
-- Každá verze se vztahuje k nějakému obrázku (jakože je to jedna z verzí *toho obrázku*).
-- Obrázek může mít jednu nebo více verzí.
-
-### DataHistory ###
-- To samé co **FigureHistory**
+### AdditionalFileHistory ###
+- Každá verze se vztahuje k nějakému souboru (jakože je to jedna z verzí *toho souboru*).
+- Soubor může mít jednu nebo více verzí.
 
 # Makra a workfow
 ## Třídy ##
