@@ -50,12 +50,12 @@ Schéma databáze se dělí na několik částí.
 ## Třídy ##
 ### Directory ###
 Složka s úlohami - může to být jak soutěž, tak složka s návrhy / trash. Úloha je vždy v právě jedné **Directory**.
-- *Label* - název, který se zobrazí v klientu při popisu složky.
+- *Name* - název, který se zobrazí v klientu při popisu složky.
 - *Path* - cesta do složky se vším potřebným k texání.
 
 ### Competition ###
 - Jeden ročník soutěže typu seminář, FOL, FOF.
-- *Name* - oficiální název (např. Fyziklání Online 2021), neplést s *Label* třídy **Directory**.
+- *Name* - oficiální název (např. Fyziklání Online 2021), neplést s *Name* třídy **Directory**.
 - *Year* - ročník.
 - *TexCode* - makro \probsource.
 - *Type* - druh soutěže, např. seminář, FOL, FOF.
@@ -65,8 +65,7 @@ Složka s úlohami - může to být jak soutěž, tak složka s návrhy / trash.
 Složka s návrhy na úlohy, nebo obecně jiná složka (např. trash).
 
 ### DraftHistory ###
-- Značí, že úloha se nacházela v nějakém draftsetu.
-- Aktuálně se nachází v tom posledním.
+- Značí, že úloha se nacházela/nachází v nějakém draftsetu.
 - *Cathegory*, *Batch*, *No* - kategorie, série a číslo, do kterých je úloha navržena. Nejsou povinné (záleží na soutěži).
 
 ### Evaluation ###
@@ -89,9 +88,8 @@ Složka s návrhy na úlohy, nebo obecně jiná složka (např. trash).
 - Úloha je v soutěži. Zřejmě může být v maximálně jedné soutěži.
 - Občas by se sice mohlo recyklovat úlohy do soustředkových fyziklání, ale pravděpodobně na nich bude nutné něco upravit, takže bude lepší vytvořit kopii a tu upravovat.
 
-### ProblemDraftHistory ###
-- Tento konkrétní návrh se vztahuje k dané úloze. Tyto návrhy se nemažou, pouze se přidávají nové. Úloha tak může být postupně navržena do více soutěží.
-- V každou chvíli ale musí být v aspoň jednom
+### CurrentDraft ###
+- Aktuální draft pro úlohu. Úloha musí vždy být právě v jednom. Pokud je zařazena do soutěže, zůstane v draftsetu pro danou soutěž.
 
 ### HistoryDraftset ###
 - **Draftset**, kam je úloha navržena.
@@ -134,13 +132,15 @@ Daný **Draftset** je souborem návrhů na úlohy do dané soutěže. Soutěž m
 - Soubor patří k úloze. Každý musí patřit do právě jedné (neznamená to, že musí být přímo v úloze - k tomu je stále potřeba přidat jej např. pomocí \fullfig).
 - Sice by se občas mohlo hodit dát jeden obrázek do více úloh, ale to je jednak velmi nepravděpodobné, a za druhé bude stejně většinou potřeba obrázky alespoň trochu upravit. Přiřazení jednoho obrázku do více úloh by tak vedlo k tlaku na to nic neupravovat a dát do obou verzí zcela stejný.
 
+### CurrentAdditionalFile ###
+- Aktuální verze souboru.
+
 ### AdditionalFileHistory ###
-- Každá verze se vztahuje k nějakému souboru (jakože je to jedna z verzí *toho souboru*).
-- Soubor může mít jednu nebo více verzí.
+- Daná verze odpovídá danému souboru. Tu nejde použít podobný trik jako v případě celé úlohy, protože z **Action** se nelze dostat na příslušný **AdditionalFile** (protože commity souvisí jen s úlohami, ne s addfily).
 
 # Makra a workfow
 ## Třídy ##
-### ProblemHistory ###
+### DataHistory ###
 - Konkrétní verze úlohy. Obsahuje ale pouze netextová makra (jakože ta, která nezávisí na jazyku)
 - *Points* - body za úlohu.
 - *ComputerResult* - strojově čitelný výsledek primárně pro FOL.
@@ -159,7 +159,7 @@ Daný **Draftset** je souborem návrhů na úlohy do dané soutěže. Soutěž m
 - *HumanResult* - lidsky čitelný výsledek primárně pro FOF.
 
 ### Topic ###
-- Seznam všech topics, které pro úlohy používáme (celkem 24). Specifikace (popis, label, ...) bude v aplikaci, tu bude fakt jen ID.
+- Seznam všech topics, které pro úlohy používáme (celkem 24). Specifikace (popis, jméno, ...) bude v aplikaci, tu bude fakt jen ID.
 - *Name* - název v nějakém univerzálním jazyku (angličtina).
 
 ### Flag ###
@@ -177,14 +177,17 @@ Daný **Draftset** je souborem návrhů na úlohy do dané soutěže. Soutěž m
 - *Status* - v jakém stavu to je (ještě se nezačalo, probíhá to, je tu nějaký problém, vše hotové ...).
 
 ## Vztahy ##
-### ProblemHistory ###
-- Každá verze úlohy patří k nějaké úloze.
+### CurrentData ###
+- Každá verze úlohy patří k nějaké úloze. Je k ní připojena přes **Action** a **ProblemCommit**. Úloha si zároveň ukazuje na svojí aktuální verzi.
 
 ### ProblemLanguageData ###
 - Říká, že daná úloha má daná textová makra v daném jazyku.
 - Každá úloha má makra v alespoň jednom jazyku, nemůže jich mít víc ve stejném jazyku.
 
 ### LanguageDataHistory ###
+- Daná languageDataHistory patří danému languageData.
+
+### CurrentLanguageData ###
 - Verzování jako výše.
 
 ### ProblemTopic ###
@@ -200,6 +203,9 @@ Daný **Draftset** je souborem návrhů na úlohy do dané soutěže. Soutěž m
 - Daný work se týká dané úlohy. Úloha může mít libovolně worků (jakože měla by mít alespoň autora, ale není to nutná podmínka pro nic dalšího.)
 
 ### WorkHistory ###
+- Daná workHistory se týká daného worku.
+
+### CurrentWork ###
 - Verzování jako výše.
 
 ### Worker ###
@@ -210,28 +216,65 @@ Daný **Draftset** je souborem návrhů na úlohy do dané soutěže. Soutěž m
 # Akce a komentáře
 ## Třídy ##
 ### Action ###
+- Základní jednotka úpravy něčeho. Každá **-History** třída je vlasntně akce. Akce vykonané na jedné úloze ve stejnou chvíli jedním organizátorem se združují do commmitů. 
+
+### Event ###
+- Událost určená tím, kdo jí vykonal, a časem, ve kterém k ní došlo. V rámci události může dojít k více akcím.
+- *Time* - čas, kdy k ní došlo.
+
+### ProblemCommit ###
+- Sdružuje více akcí, vykonaných na jedné úloze v jednu chvíli. Buď má přiřazený event, nebo je dále sdružen do **CompetitionCommit**. Dále ukazuje na úlohu, které se týká.
+- *Text* - nepovinný popis úpravy.
+
+### CompetitionCommit ###
+- Sdružuje více akcí, vykonaných na jedné soutěži v jednu chvíli. Například permutace pořadí několika úloh. Má přiřazený **Event** a dále soutěž, které se týká.
+- *Text* - nepovinný popis úpravy.
+
+### Issue ###
+- Problém v konkrétní fázi práce na úloze (např. při korekturování úlohy se zjistilo, že ...).
+- *Name* - název problému.
+- *Status* - v jaké fázi řešení problému jsme (na konci tam bude solved, čímž se to skryje jako v korekturovací tabulce).
 
 ### Comment ###
+- Komentář ve vláknu u nějakého problému. Také je to **Event**.
+- *Text* - textový obsah komentáře.
 
 ## Vztahy ##
-### ActionLogin ###
+### ProblemCommit ###
 
-### CommentOnAction ###
+### CommitForProblem ###
 
-### CommentAction ###
+### ProblemCommitEvent ###
+- Pokud problem commit ukazuje na event, znamená to, že je přímo tímto eventem. Jinak musí ukazovat na competition commit.
+
+### CompetitionCommit ###
+- Pokud problem commit ukazuje na competition event, znamená to, že je součástí eventu, který daný competition commit reprezentuje.
+
+### CommitForCompetition ###
+
+### CompetitionCommitEvent ###
+- Competition commit je daným eventem.
+
+### EventLogin ###
+
+### WorkIssue ###
+- Problém patří k dané práci. Každý patří k právě jedné, ale práce může mít libovolně problémů.
+
+### CommentIssue ###
+- Komentář patří k danému problému. Musí tam být aspoň jeden a to ten první, podle kterého se pozná, kdo vlákno založil.
+
+### CommentEvent ###
+- Vytvoření komentáře je také event.
 
 ### WorkAction ###
 
-### ProblemAction ###
+### DataAction ###
 
 ### LanguageDataAction ###
 
-### FigureAction ###
-
-### DataAction ###
+### AdditionalFileAction ###
 
 ### DraftAction ###
-
 
 
 - TODO - komentář do change?

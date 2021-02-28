@@ -1,39 +1,3 @@
-DROP TABLE IF EXISTS "problem_topic";
-DROP TABLE IF EXISTS "topic";
-DROP TABLE IF EXISTS "problem_flag";
-DROP TABLE IF EXISTS "flag";
-
-DROP TABLE IF EXISTS "addfile_history";
-DROP TABLE IF EXISTS "addfile";
-
-DROP TABLE IF EXISTS "language_data_history";
-DROP TABLE IF EXISTS "language_data";
-DROP TABLE IF EXISTS "work_history";
-DROP TABLE IF EXISTS "work";
-
-DROP TABLE IF EXISTS "evaluation";
-DROP TABLE IF EXISTS "draft_history";
-
-DROP TABLE IF EXISTS "problem_history";
-DROP TABLE IF EXISTS "problem";
-
-DROP TABLE IF EXISTS "role";
-DROP TABLE IF EXISTS "competition";
-DROP TABLE IF EXISTS "draftset";
-DROP TABLE IF EXISTS "directory";
-
-DROP TABLE IF EXISTS "comment";
-DROP TABLE IF EXISTS "action";
-DROP TABLE IF EXISTS "login_group";
-DROP TABLE IF EXISTS "refresh_token";
-DROP TABLE IF EXISTS "login";
-
-DROP TABLE IF EXISTS "organizer_group";
-DROP TABLE IF EXISTS "organizer";
-DROP TABLE IF EXISTS "group";
-
-DROP TABLE IF EXISTS "language";
-
 -- configuration --
 
 CREATE TABLE "language" (
@@ -87,28 +51,11 @@ CREATE TABLE "login_group" (
     FOREIGN KEY ("group_id") REFERENCES "group" ("id")
 );
 
--- action --
-
-CREATE TABLE "action" (
-    "id" INT PRIMARY KEY AUTO_INCREMENT,
-    "time" DATETIME NOT NULL,
-    "login_id" INT NOT NULL,
-    FOREIGN KEY ("login_id") REFERENCES "login" ("id")
-);
-
-CREATE TABLE "comment" (
-    "id" INT PRIMARY KEY,
-    "content" TEXT NOT NULL,
-    "parent_action_id" INT NOT NULL,
-    FOREIGN KEY ("id") REFERENCES "action" ("id"),
-    FOREIGN KEY ("parent_action_id") REFERENCES "action" ("id")
-);
-
 -- competition --
 
 CREATE TABLE "directory" (
     "id" INT PRIMARY KEY AUTO_INCREMENT,
-    "label" NVARCHAR(255) NOT NULL,
+    "name" NVARCHAR(255) NOT NULL,
     "path" NVARCHAR(255) NOT NULL,
     "group_id" INT NOT NULL,
     FOREIGN KEY ("group_id") REFERENCES "group" ("id")
@@ -140,7 +87,22 @@ CREATE TABLE "role" (
     FOREIGN KEY ("competition_id") REFERENCES "competition" ("id")
 );
 
--- problem --
+-- action --
+
+CREATE TABLE "event" (
+    "id" INT PRIMARY KEY AUTO_INCREMENT,
+    "time" DATETIME NOT NULL,
+    "login_id" INT NOT NULL,
+    FOREIGN KEY ("login_id") REFERENCES "login" ("id")
+);
+
+CREATE TABLE "competition_commit" (
+    "id" INT PRIMARY KEY,
+    "competition_id" INT NOT NULL,
+    "description" NVARCHAR(255),
+    FOREIGN KEY ("id") REFERENCES "event" ("id"),
+    FOREIGN KEY ("competition_id") REFERENCES "competition" ("id")
+);
 
 CREATE TABLE "problem" (
     "id" INT PRIMARY KEY AUTO_INCREMENT,
@@ -149,29 +111,45 @@ CREATE TABLE "problem" (
     "batch" INT,
     "no" INT,
     "competition_id" INT,
+    "current_data_id" INT NOT NULL,
+    "current_draft_id" INT NOT NULL,
     FOREIGN KEY ("competition_id") REFERENCES "competition" ("id"),
     UNIQUE ("batch", "no", "competition_id")
 );
 
-CREATE TABLE "problem_history" (
+CREATE TABLE "problem_commit" (
+    "id" INT PRIMARY KEY AUTO_INCREMENT,
+    "event_id" INT NOT NULL,
+    "problem_id" INT NOT NULL,
+    "description" NVARCHAR(255),
+    FOREIGN KEY ("event_id") REFERENCES "event" ("id"),
+    FOREIGN KEY ("problem_id") REFERENCES "problem" ("id")
+);
+
+CREATE TABLE "action" (
+    "id" INT PRIMARY KEY AUTO_INCREMENT,
+    "problem_commit_id" INT NOT NULL,
+    FOREIGN KEY ("problem_commit_id") REFERENCES "problem_commit" ("id")
+);
+
+CREATE TABLE "data_history" (
     "id" INT PRIMARY KEY,
     "points" INT,
-    "computer_result" TEXT,
-    "additional_text_code" TEXT,
-    "problem_id" INT NOT NULL,
-    FOREIGN KEY ("problem_id") REFERENCES "problem" ("id"),
+    "computer_result" TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    "additional_tex_code" TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     FOREIGN KEY ("id") REFERENCES "action" ("id")
 );
 
+ALTER TABLE "problem" ADD CONSTRAINT "current_data_id" FOREIGN KEY ("current_data_id") REFERENCES "data_history" ("id");
+
 CREATE TABLE "draft_history" (
     "id" INT PRIMARY KEY,
-    "problem_id" INT NOT NULL,
     "draftset_id" INT NOT NULL,
-    FOREIGN KEY ("problem_id") REFERENCES "problem" ("id"),
-    FOREIGN KEY ("draftset_id") REFERENCES "draftset" ("id"),
-    FOREIGN KEY ("id") REFERENCES "action" ("id")
-    -- UNIQUE ("problem_id", "competition_id") -- úloha může být vícekrát přesouvána mezi stejnými draftsety
+    FOREIGN KEY ("id") REFERENCES "action" ("id"),
+    FOREIGN KEY ("draftset_id") REFERENCES "draftset" ("id")
 );
+
+ALTER TABLE "problem" ADD CONSTRAINT "current_draft_id" FOREIGN KEY ("current_draft_id") REFERENCES "draft_history" ("id");
 
 CREATE TABLE "evaluation" (
     "draft_history_id" INT PRIMARY KEY,
@@ -187,6 +165,7 @@ CREATE TABLE "work" (
     "id" INT PRIMARY KEY AUTO_INCREMENT,
     "type" NVARCHAR(255) NOT NULL,
     "problem_id" INT NOT NULL,
+    "current_work_id" INT NOT NULL,
     FOREIGN KEY ("problem_id") REFERENCES "problem" ("id")
 );
 
@@ -195,31 +174,51 @@ CREATE TABLE "work_history" (
     "status" NVARCHAR(255) NOT NULL,
     "organizer_id" INT,
     "work_id" INT NOT NULL,
+    FOREIGN KEY ("id") REFERENCES "action" ("id"),
     FOREIGN KEY ("organizer_id") REFERENCES "organizer" ("id"),
-    FOREIGN KEY ("work_id") REFERENCES "work" ("id"),
-    FOREIGN KEY ("id") REFERENCES "action" ("id")
+    FOREIGN KEY ("work_id") REFERENCES "work" ("id")
 );
 
-CREATE TABLE "language_data" (
+ALTER TABLE "work" ADD CONSTRAINT "current_work_id" FOREIGN KEY ("current_work_id") REFERENCES "work_history" ("id");
+
+CREATE TABLE "issue" (
+    "id" INT PRIMARY KEY AUTO_INCREMENT,
+    "name" NVARCHAR(255) NOT NULL,
+    "status" NVARCHAR(255) NOT NULL,
+    "work_id" INT NOT NULL,
+    FOREIGN KEY ("work_id") REFERENCES "work" ("id")
+);
+
+CREATE TABLE "comment" (
+    "id" INT PRIMARY KEY,
+    "content" TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    "issue_id" INT NOT NULL,
+    FOREIGN KEY ("id") REFERENCES "event" ("id"),
+    FOREIGN KEY ("issue_id") REFERENCES "issue" ("id")
+);
+
+CREATE TABLE "langdata" (
     "id" INT PRIMARY KEY AUTO_INCREMENT,
     "language_id" INT NOT NULL,
     "problem_id" INT NOT NULL,
-    FOREIGN KEY ("language_id") REFERENCES "language" ("id"),
+    "current_langdata_id" INT NOT NULL,
     FOREIGN KEY ("problem_id") REFERENCES "problem" ("id"),
     UNIQUE ("language_id", "problem_id")
 );
 
-CREATE TABLE "language_data_history" (
+CREATE TABLE "langdata_history" (
     "id" INT PRIMARY KEY,
     "name" NVARCHAR(255),
-    "origin" TEXT,
-    "task" TEXT,
-    "solution" TEXT,
-    "human_result" TEXT,
-    "language_data_id" INT NOT NULL,
-    FOREIGN KEY ("language_data_id") REFERENCES "language_data" ("id"),
-    FOREIGN KEY ("id") REFERENCES "action" ("id")
+    "origin" TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    "task" TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    "solution" TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    "human_result" TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    "langdata_id" INT NOT NULL,
+    FOREIGN KEY ("id") REFERENCES "action" ("id"),
+    FOREIGN KEY ("langdata_id") REFERENCES "langdata" ("id")
 );
+
+ALTER TABLE "langdata" ADD CONSTRAINT "current_langdata_id" FOREIGN KEY ("current_langdata_id") REFERENCES "langdata_history" ("id");
 
 -- addfile --
 
@@ -228,17 +227,20 @@ CREATE TABLE "addfile" (
     "problem_id" INT NOT NULL,
     "refname" NVARCHAR(255) NOT NULL, -- so the file can be found and referenced from problem
     "type" NVARCHAR(255) NOT NULL, -- Filename extension (plt, mp, csv)
+    "current_addfile_id" INT NOT NULL,
     FOREIGN KEY ("problem_id") REFERENCES "problem" ("id"),
     UNIQUE ("problem_id", "refname")
 );
 
 CREATE TABLE "addfile_history" (
     "id" INT PRIMARY KEY,
-    "content" TEXT,
+    "content" TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     "addfile_id" INT NOT NULL,
-    FOREIGN KEY ("addfile_id") REFERENCES "addfile" ("id"),
-    FOREIGN KEY ("id") REFERENCES "action" ("id")
+    FOREIGN KEY ("id") REFERENCES "action" ("id"),
+    FOREIGN KEY ("addfile_id") REFERENCES "addfile" ("id")
 );
+
+ALTER TABLE "addfile" ADD CONSTRAINT "current_addfile_id" FOREIGN KEY ("current_addfile_id") REFERENCES "addfile_history" ("id");
 
 -- flag & topic --
 

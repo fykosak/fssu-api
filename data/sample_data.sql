@@ -36,22 +36,7 @@ VALUES
     (2, 2),
     (3, 2);
 
-INSERT INTO "action" ("time", "login_id")
-VALUES
-    ('2020-01-01 10:10:10', 1),
-    ('2020-01-01 10:10:11', 1),
-    ('2020-01-01 10:10:12', 1),
-    ('2020-09-06 04:20:00', 2),
-    ('2020-09-06 04:20:01', 2);
-    ('2020-09-06 04:20:02', 2);
-
--- INSERT INTO "comment" ("id", "content", "parent_action_id")
-
-INSERT INTO "directory" ("label", "path", "group_id")
-VALUES
-    ('Seminář 35', 'fykos35/problems', 1);
-
-INSERT INTO "directory" ("label", "path", "group_id")
+INSERT INTO "directory" ("name", "path", "group_id")
 VALUES
     ('Trash', 'trash/problems', 1),
     ('Seminář 35', 'fykos35/problems', 1),
@@ -80,32 +65,19 @@ VALUES
     (6, 'Fyziklání 2022', 14, 'FOF14', 'fof', 'not_started', 7),
     (9, 'Výfuck 10', 10, 'vyfuck10', 'seminar', 'not_started', 10);
 
-INSERT INTO "problem" ("solvers", "avg", "batch", "no", "competition_id")
-VALUES
-    (NULL, NULL, NULL, NULL, NULL),
-    (NULL, NULL, 1, 1, 2);
+-- TODO - kontroly na to, jestli jsou organizátoři z worku ve stejné skupině
 
-INSERT INTO "problem_history" ("id", "points", "computer_result", "additional_text_code", "problem_id")
-VALUES
-    (1, NULL, NULL, NULL, 1),
-    (4, 5, NULL, NULL, 2);
+CALL create_problem_with_langdata(1, 'Vytvoření první úlohy', 3, 1, 'těžká úloha', NULL, 'nějaké zadání', NULL, NULL, 1, 1, @problem_id, @problem_commit_id, @langdata_id);
+CALL create_problem_with_langdata(1, 'Vytvoření druhé úlohy', 3, 1, 'lehká úloha', NULL, 'jiné zadání', NULL, NULL, 1, 2, @problem_id, @problem_commit_id, @langdata_id);
 
-INSERT INTO "draft_history" ("id", "problem_id", "draftset_id")
-VALUES
-    (2, 1, 5),
-    (5, 2, 3);
+
+-- INSERT INTO "role" ("type_id", "login_id" INT, "competition_id")
 
 -- INSERT INTO "evaluation" ("draft_history_id", "skill_difficulty", "work_difficulty", "interestingness")
 
-INSERT INTO "work" ("type", "problem_id")
-VALUES
-    ('taskAuthor', 1),
-    ('taskAuthor', 2);
+-- INSERT INTO "issue" ("name", "status", "work_id")
 
-INSERT INTO "work_history" ("id", "status", "organizer_id", "work_id")
-VALUES
-    (3, 'done', 1, 1),
-    (6, 'done', 2, 2);
+-- INSERT INTO "comment" ("id", "content", "issue_id")
 
 -- promyslet si, jak to mít s action_id - myslím, že by nebylo špatné mít, aby pod jením action_id mohlo být víc událostí najednou
 -- rozhodně dává smysl, aby pod tím bylo jako problem_history, tak např. language_data history, pokud se týkají stejné věci
@@ -116,10 +88,6 @@ VALUES
     -- ačkoli by mohlo - např. při založení úlohy rovnou přidám autora vzoráku
 -- potom by bylo nejlepší dát každé _history třídě vlastní id, a zároveň jim přidat action_id, které už nebude muset být unique
     -- tím se pěkně vyřeší to, že bude možné udělat víc úprav, které spolu logicky souvisí, "najednou"
-
--- INSERT INTO "language_data" ("language_id", "problem_id")
-
--- INSERT INTO "language_data_history" ("id", "name", "origin", "task", "solution", "human_result", "language_data_id")
 
 -- INSERT INTO "addfile" ("problem_id", "refname", "type")
 -- INSERT INTO "addfile_history" ("id", "content", "addfile_id")
