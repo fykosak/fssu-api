@@ -66,6 +66,11 @@ VALUES
     (9, 'Výfuck 10', 10, 'vyfuck10', 'seminar', 'not_started', 10);
 
 -- TODO - kontroly na to, jestli jsou organizátoři z worku ve stejné skupině
+-- kdy:
+--  - při vytvoření nového workHistory (work - problem - draftset - directory - group) (workHistory - organizer - group)
+--  - 
+--  - 
+--  - 
 
 CALL create_problem_with_langdata(1, 'Vytvoření první úlohy', 3, 1, 'těžká úloha', NULL, 'nějaké zadání', NULL, NULL, 1, 1, @problem_id, @problem_commit_id, @langdata_id);
 CALL create_problem_with_langdata(1, 'Vytvoření druhé úlohy', 3, 1, 'lehká úloha', NULL, 'jiné zadání', NULL, NULL, 1, 2, @problem_id, @problem_commit_id, @langdata_id);
